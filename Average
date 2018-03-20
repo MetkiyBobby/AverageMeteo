@@ -56,5 +56,54 @@ def timeFiltering(data):
     ''',re.X)
     data = amcDataRegex.findall(initialData)
 
-# TODO: Функция для перевода календарной даты в метеорологическую с учетом
-# часового пояса
+    return data
+
+def temperatureFiltering(data):
+    """Функция принимает данные возвращаемые функцией timeFiltering и
+    возвращает список содержащий только данные измерений температуры"""
+    temperatureList = []
+    for i in data:
+        string = (i[0] + ';' + i[13])
+        temperatureList.append(string)
+
+    return temperatureList
+
+def calendarIntoMeteo(data):
+    """Функция принимает список измерений с датами по календарным суткам
+    и возвращает список с датами по метеорологическим суткам (следующие
+    метеорологические сутки начинаются в 15:00 ВСВ)"""
+    lastDayOfMonth = ('01-31', '02-28', '02-29', '03-31', '04-30', '05-31',
+                      '06-30', '07-31', '08-31', '09-30', '10-31', '11-30',
+                      '12-31') # список содержащий последние даты месяцев
+    listOfTerms = list(range(15, 24)) # список содержащий часы, которые
+                                      # относятся к следующим суткам
+    meteo_list = [] # список содержащий даты по метеорологическим суткам
+    for i in data:  # перебираются все элементы исходного списка
+        if int(i[11:13]) in listOfTerms:
+            # если срез текущего элемента, содержащий значение часа
+            # есть в списке относится к срокам переносимым на следующие
+            # сутки
+            calendarDay = int(i[8:10]) # срез содержащий значение
+                                       # календарного дня
+            calendarMonth = int(i[5:7])# срез содержащий значение
+                                       # календарного месяца
+            meteoDay = str(calendarDay + 1) # значение метеорологических
+                                            # суток
+            meteoMonth = str(calendarMonth + 1) # значение метеорологического
+                                                # месяца
+            if calendarDay < 9: 
+                meteo_list.append(i[:8] + '0' + meteoDay + i[10:])
+            elif i[5:10] in lastDayOfMonth: # если срез содержащий значение
+                                            # календарного месяца содержится
+                                            # в списке последних дат месяцев
+                if calendarMonth < 9:
+                    meteo_list.append(i[:5] + '0' + meteoMonth + '-01' +
+                                    i[10:])
+                else:
+                    meteo_list.append(i[:5] + meteoMonth + '-01' + i[10:])
+            else:
+                meteo_list.append(i[:8] + meteoDay + i[10:])
+        else:
+            meteo_list.append(i)
+               
+    return meteo_list
