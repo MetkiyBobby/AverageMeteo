@@ -153,8 +153,10 @@ def average(data, period):
         
     print()
 
-def calculation(period):
-    data = pyperclip.paste() # вставка исходных данных из буфера обмена 
+def calculation(period, filePath):
+    file = open(filePath)
+    fileForRegex = file.read()
+    data = fileForRegex 
     data = timeFiltering(data)
     data = temperatureFiltering(data)
     data = calendarIntoMeteo(data)
@@ -163,43 +165,60 @@ def calculation(period):
     else:
         data = dataByMonth(data)
     data = average(data, period)
-    
+
+def choiceOfStation():
+    stationNumber = 3 # переменной присваивается неиспользуемое значение
+    filePath = None
+    while not(stationNumber in list(range(1, 3))):
+        print()
+        print('Посчитать среднюю температуру для станции Коробово(1)' +
+              ' или для станции Яршево(2)?\n(наберите на клавиатуре' +
+              ' соответствующую цифру и нажмите клавишу \'ENTER\'):')
+        try:
+            stationNumber = int(input())
+        except ValueError:
+            print('Необходимо ввести цифру 1 или 2')
+            continue
+        if stationNumber not in list(range(1, 3)):
+            print('Необходимо ввести цифру 1 или 2')
+        if stationNumber == 1:
+            filePath = 'C:\\Synop\\ПРОГНОЗ\\Коробово.txt'
+        elif stationNumber == 2:
+            filePath = 'C:\\Synop\\ПРОГНОЗ\\Яршево.txt'
+    return filePath
+
+def choiceOfPeriod():
+    periodNumber = 3 # переменной присваивается неиспользуемое значение
+    period = None
+    while not(periodNumber in list(range(1, 3))):
+        print()
+        print('Посчитать среднюю температуру по месяцам(1) или' +
+                  ' по суткам(2)?\n(наберите на клавиатуре соответствующую' +
+                  ' цифру и нажмите клавишу \'ENTER\'):')
+        try:
+            periodNumber = int(input())
+        except ValueError:
+            print('Необходимо ввести цифру 1 или 2')
+            continue
+        if periodNumber not in list(range(1, 3)):
+            print('Необходимо ввести цифру 1 или 2')
+        if periodNumber == 1:
+            period = 'МЕСЯЦАМ'
+        elif periodNumber == 2:
+            period = 'СУТКАМ'
+    return period
 
 def menu():
     while True:
         print(('РАСЧЕТ СРЕДНИХ ЗНАЧЕНИЙ ТЕМПЕРАТУРЫ'
                ' ПО ДАННЫМ АМК').center(70, '='))
-        print()
-        print('Скопируйте ряд наблюдений в буфер обмена.\n(Для этого' +
-              ' откройте текстовый документ Яршево или Коробово, \n' +
-              'затем выберите пункт меню Правка - Выделить все, \n' +
-              'затем Правка - Копировать)')
-        print('Теперь закройте или сверните открытый ранее текстовый документ')
-        print()
-        print('Теперь необходимо работать в этом окне (с черным фоном)')
-        periodNumber = 3 # переменной присваивается неиспользуемое значение
-        period = None
-        while not(periodNumber in list(range(1, 3))):
-            print()
-            print('Посчитать среднюю температуру по месяцам(1) или' +
-                  ' по суткам(2)?\n(наберите на клавиатуре соответствующую' +
-                  ' цифру и нажмите клавишу \'ENTER\'):')
-            try:
-                periodNumber = int(input())
-            except ValueError:
-                print('Необходимо ввести цифру 1 или 2')
-                continue
-            if periodNumber not in list(range(1, 3)):
-                print('Необходимо ввести цифру 1 или 2')
-        if periodNumber == 1:
-            period = 'МЕСЯЦАМ'
-        elif periodNumber == 2:
-            period = 'СУТКАМ'
+        filePath = choiceOfStation()
         
-        calculation(period)
+        # TODO сделать проверку существования пути
+        
+        period = choiceOfPeriod()        
+        calculation(period, filePath)
         print('Для продолжения нажмите клавишу \'ENTER\'')
         pause = input()
        
 menu()    
-
-
