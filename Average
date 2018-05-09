@@ -13,22 +13,23 @@ def timeFiltering(data):
     amcDataRegex = re.compile(r'''
     (\d\d\d\d-\d\d-\d\d\s\d\d:00)    # ГГГГ-ММ-ДД ЧЧ:00, где 00 - минуты
     (:\d\d)                          # секунды
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (\d+\.\d+|None)                  # направление ветра
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (\d+\.\d+|None)                  # скорость ветра
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (\d+\.\d+|None)                  # порыв ветра
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (-?\d+\.\d+|None)                # температура точки росы
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (\d+\.\d+|None)                  # относительная влажность
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (-?\d+\.\d+|None)                # температура воздуха
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (\d+\.\d+|None)                  # атмосферное давление
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (-?\d+\.\d+|None)                # тенденция
+    (\\n)                            # разделитель
     ''',re.X)
     data = amcDataRegex.findall(data)
 
@@ -156,8 +157,9 @@ def average(data, period):
 
 def calculation(period, filePath):
     file = open(filePath)
-    fileForRegex = file.read()
-    data = fileForRegex 
+    fileForRegex = file.readlines()
+    data = str(fileForRegex[0:5000])
+    file.close()
     data = timeFiltering(data)
     data = temperatureFiltering(data)
     data = calendarIntoMeteo(data)
@@ -224,4 +226,4 @@ def menu():
         print('Для продолжения нажмите клавишу \'ENTER\'')
         pause = input()
        
-menu()    
+menu() 
