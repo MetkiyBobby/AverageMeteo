@@ -4,6 +4,7 @@
 
 import pyperclip  # импорт модуля pyperclip для работы с буфером обмена
 import re # импорт модуля для работы с регулярными выражениями
+import os # импорт модуля для работы с файлами и путями
 
 def timeFiltering(data):
     """Функция принимает исходный текст и возвращает список содержащий
@@ -12,22 +13,23 @@ def timeFiltering(data):
     amcDataRegex = re.compile(r'''
     (\d\d\d\d-\d\d-\d\d\s\d\d:00)    # ГГГГ-ММ-ДД ЧЧ:00, где 00 - минуты
     (:\d\d)                          # секунды
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (\d+\.\d+|None)                  # направление ветра
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (\d+\.\d+|None)                  # скорость ветра
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (\d+\.\d+|None)                  # порыв ветра
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (-?\d+\.\d+|None)                # температура точки росы
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (\d+\.\d+|None)                  # относительная влажность
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (-?\d+\.\d+|None)                # температура воздуха
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (\d+\.\d+|None)                  # атмосферное давление
-    (\s)                             # разделитель
+    (\\t)                            # разделитель
     (-?\d+\.\d+|None)                # тенденция
+    (\\n)                            # разделитель
     ''',re.X)
     data = amcDataRegex.findall(data)
 
@@ -153,8 +155,11 @@ def average(data, period):
         
     print()
 
-def calculation(period):
-    data = pyperclip.paste() # вставка исходных данных из буфера обмена 
+def calculation(period, filePath):
+    file = open(filePath)
+    fileForRegex = file.readlines()
+    data = str(fileForRegex[0:5000])
+    file.close()
     data = timeFiltering(data)
     data = temperatureFiltering(data)
     data = calendarIntoMeteo(data)
@@ -163,43 +168,66 @@ def calculation(period):
     else:
         data = dataByMonth(data)
     data = average(data, period)
-    
+
+def choiceOfStation():
+    """Функция запрашивает у пользователя станцию для расчета и
+    возвращает файл с данными по выбранной станции"""
+    stationNumber = 3 # переменной присваивается неиспользуемое значение
+    filePath = None
+    while not(stationNumber in list(range(1, 3))):
+        print()
+        print('Посчитать среднюю температуру для станции Коробово(1)' +
+              ' или для станции Яршево(2)?\n(наберите на клавиатуре' +
+              ' соответствующую цифру и нажмите клавишу \'ENTER\'):')
+        try:
+            stationNumber = int(input())
+        except ValueError:
+            print('Необходимо ввести цифру 1 или 2')
+            continue
+        if stationNumber not in list(range(1, 3)):
+            print('Необходимо ввести цифру 1 или 2')
+        if stationNumber == 1:
+            filePath = 'C:\\Synop\\ПРОГНОЗ\\Коробово.txt'            
+        elif stationNumber == 2:
+            filePath = 'C:\\Synop\\ПРОГНОЗ\\Яршево.txt'
+    return filePath
+
+def choiceOfPeriod():
+    """Функция запращивает у пользователя период расчета (сутки или месяц)
+    и возвращает значение выбранного периода"""
+    periodNumber = 3 # переменной присваивается неиспользуемое значение
+    period = None
+    while not(periodNumber in list(range(1, 3))):
+        print()
+        print('Посчитать среднюю температуру по месяцам(1) или' +
+                  ' по суткам(2)?\n(наберите на клавиатуре соответствующую' +
+                  ' цифру и нажмите клавишу \'ENTER\'):')
+        try:
+            periodNumber = int(input())
+        except ValueError:
+            print('Необходимо ввести цифру 1 или 2')
+            continue
+        if periodNumber not in list(range(1, 3)):
+            print('Необходимо ввести цифру 1 или 2')
+        if periodNumber == 1:
+            period = 'МЕСЯЦАМ'
+        elif periodNumber == 2:
+            period = 'СУТКАМ'
+    return period
 
 def menu():
     while True:
         print(('РАСЧЕТ СРЕДНИХ ЗНАЧЕНИЙ ТЕМПЕРАТУРЫ'
                ' ПО ДАННЫМ АМК').center(70, '='))
-        print()
-        print('Скопируйте ряд наблюдений в буфер обмена.\n(Для этого' +
-              ' откройте текстовый документ Яршево или Коробово, \n' +
-              'затем выберите пункт меню Правка - Выделить все, \n' +
-              'затем Правка - Копировать)')
-        print('Теперь закройте или сверните открытый ранее текстовый документ')
-        print()
-        print('Теперь необходимо работать в этом окне (с черным фоном)')
-        periodNumber = 3 # переменной присваивается неиспользуемое значение
-        period = None
-        while not(periodNumber in list(range(1, 3))):
-            print()
-            print('Посчитать среднюю температуру по месяцам(1) или' +
-                  ' по суткам(2)?\n(наберите на клавиатуре соответствующую' +
-                  ' цифру и нажмите клавишу \'ENTER\'):')
-            try:
-                periodNumber = int(input())
-            except ValueError:
-                print('Необходимо ввести цифру 1 или 2')
-                continue
-            if periodNumber not in list(range(1, 3)):
-                print('Необходимо ввести цифру 1 или 2')
-        if periodNumber == 1:
-            period = 'МЕСЯЦАМ'
-        elif periodNumber == 2:
-            period = 'СУТКАМ'
-        
-        calculation(period)
+        filePath = choiceOfStation()
+        if os.path.exists(filePath):        
+            period = choiceOfPeriod()        
+            calculation(period, filePath)
+        else:
+            print('Файл не найден. Проверьте присутствуют ли в папке' +
+                  ' \'ПРОГНОЗ\'\nфайлы \'Коробово.txt\' и \'Яршево.txt\'' +
+                  '\n(Возможно один из них удален или переименован)')
         print('Для продолжения нажмите клавишу \'ENTER\'')
         pause = input()
        
-menu()    
-
-
+menu() 
